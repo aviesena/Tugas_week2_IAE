@@ -9,41 +9,22 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
   next();
 });
-
-
-// Fungsi untuk mengambil data countries dari API Football
-async function getFootballData() {
-  try {
-    const response = await axios.get('https://apiv3.apifootball.com/?action=get_countries', {
-      params: {
-        APIkey: API_KEY
-      }
-    });
-    const data = response.data;
-    return data;
-  } catch (error) {
-    console.error('Error fetching football data:', error);
-    return null;
-  }
-}
-
+ 
 //Routing untuk menampilkan data countries FootballAPI
 app.get('/', async (req, res) => {
-  const footballData = await getFootballData();
-  if (footballData) {
-    res.json(footballData);
-  } else {
+  try {
+    const response = await axios.get(`https://apiv3.apifootball.com/?action=get_countries&APIkey=${API_KEY}`);
+    res.json(response.data);
+  } catch(error) {
     res.status(500).json({ error: 'Failed to fetch football data' });
   }
-  });  
+});  
   
 // Routing dan endpoint untuk mengambil dan menampilkan data liga berdasarkan country_id
 app.get('/leagues/:countryId', async (req, res) => {
   const { countryId } = req.params;
-
   try {
     const response = await axios.get(`https://apiv3.apifootball.com/?action=get_leagues&country_id=${countryId}&APIkey=${API_KEY}`);
-    
     res.json(response.data);
   } catch (error) {
     console.error('Error fetching leagues:', error);
@@ -51,4 +32,31 @@ app.get('/leagues/:countryId', async (req, res) => {
   }
 });
 
+// Routing dan endpoint untuk mengambil dan menampilkan data klasemen berdasarkan league_id
+app.get('/standings/:leagueId', async (req, res) => {
+  const { leagueId } = req.params;
+
+  try {
+    const response = await axios.get(`https://apiv3.apifootball.com/?action=get_standings&league_id=${leagueId}&APIkey=${API_KEY}`);
+    
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error fetching standings:', error);
+    res.status(500).json({ error: 'An error occurred while fetching standings.' });
+  }
+});
+
+app.get('/team/:teamId', async (req, res) => {
+  try {
+    const { teamId } = req.params;
+    const response = await axios.get(`https://apiv3.apifootball.com/?action=get_teams&team_id=${teamId}&APIkey=${API_KEY}`);
+    res.json(response.data);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+
 app.listen(2000, () => {console.log("Server started on port 2000")})
+
